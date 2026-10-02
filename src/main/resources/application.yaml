@@ -2,8 +2,6 @@ spring:
   application:
     name: validador
   main:
-    # La Lambda no es un servidor: no debe intentar arrancar Tomcat ni el ciclo
-    # de vida de una aplicacion web.
     web-application-type: none
     banner-mode: "off"
 
@@ -11,38 +9,25 @@ app:
   security:
     jwt:
       providers:
-        # accesos Azure
+        # Accesos Azure
         - name: azure
           jwk-set-uri: https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/discovery/v2.0/keys
           issuers:
             - https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0
-          # Azure usa el Application ID URI como "aud"
           audiences:
             - 57750927-6116-478c-a047-d06caa8fcd00
             - api://57750927-6116-478c-a047-d06caa8fcd00
 
-        #Acceso AWS Cognito
+        # Acceso AWS Cognito (CORREGIDO)
         - name: cognito
-          jwk-set-uri: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_t75i4QEQt/.well-known/jwks.json
+          jwk-set-uri: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_swkHU2Dbf/.well-known/jwks.json
           issuers:
-            - https://cognito-idp.us-east-1.amazonaws.com/us-east-1_t75i4QEQt
-          # App Client ID del user pool. OJO: en Cognito este valor aparece en el
-          # claim "aud" del ID token, pero en el claim "client_id" del ACCESS token
-          # (por diseno, para que un access token no se pueda usar donde se espera
-          # un ID token). El authorizer acepta cualquiera de los dos.
-          #
-          # No se declara ningun rol por defecto: este authorizer solo comprueba
-          # que el token sea valido. Quien decide sobre roles es el backend.
+            - https://cognito-idp.us-east-1.amazonaws.com/us-east-1_swkHU2Dbf
           audiences:
-            - dqp6h33dd0fr2sdei7ov9rb2a
+            - 6guec3g1r44qonqo1ambjd9885
 
 logging:
   level:
-    # Autorizacion: un nivel bajo es un riesgo, no solo ruido.
     org.springframework.security: INFO
     com.lambda.validador: INFO
-    # AWSLambdaUtils registra el evento ENTERO en INFO, y el evento del authorizer
-    # lleva el token en claro dos veces: en "identitySource" y en
-    # "headers.authorization". Con este nivel, cada peticion deja un JWT
-    # reutilizable escrito en CloudWatch Logs.
     org.springframework.cloud.function: WARN
